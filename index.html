@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset = "utf-8">
+    <title>Provatorov</title>
+    <script src = "https://cdn.babylonjs.com/babylon.js"></script>
+
+
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+       html, body {width: 100%!important; height: 100%!important;}
+        canvas {width: 100%; height: 100%;}
+    </style>
+</head>
+<body>
+<canvas id = "renderCanvas"></canvas>
+<script type = "text/javascript">
+
+
+    var config = {
+        PLANET_RADIUS: 30, //радиус земли
+        PLANET_V: 200, // количество вершин
+        MOON_RADIUS: 5, //радиус луны
+        MOON_V: 25
+    };
+
+    const canvas = document.getElementById("renderCanvas");
+    const engine = new BABYLON.Engine(canvas, true);
+
+
+    var createScene = function () {
+
+        const scene = new BABYLON.Scene(engine);
+
+        var camera = new BABYLON.FreeCamera("FreeCamera", new BABYLON.Vector3(0, -8, -20), scene);
+        camera.attachControl(canvas, true);
+        camera.upperBetaLimit = Math.PI / 2;
+        camera.lowerBetaLimit = Math.PI / 6;
+        camera.lowerRadiusLimit = config.PLANET_RADIUS *3;
+        camera.upperRadiusLimit = config.PLANET_RADIUS *5;
+
+        const light = new BABYLON.HemisphericLight('light', new BABYLON.Vector3(30, 0, 12), scene);
+
+        //var groundMaterial = new BABYLON.StandardMaterial("ground", scene);
+        //groundMaterial.diffuseTexture =new BABYLON.Texture('assets/images/space.jpg');
+
+
+        const  universal = new BABYLON.PhotoDome(
+            "testuniversal",
+            "assets/images/space.jpg",
+            {
+                resolution: 32,
+                size: 200
+            },
+            scene
+        );
+
+        const planet = BABYLON.Mesh.CreateSphere("planet",config.PLANET_V, config.PLANET_RADIUS, scene, true);
+       //planet.position = new BABYLON.Vector3(-15, -12, 2);
+
+        planet.material = new BABYLON.StandardMaterial("earthMat", scene);
+        planet.material.diffuseTexture = new BABYLON.Texture("assets/images/earth.jpg", scene);
+
+       const moon = BABYLON.Mesh.CreateSphere("moon", config.MOON_V, config.MOON_RADIUS, scene); //Луна
+        moon.material = new BABYLON.StandardMaterial("moonMat", scene);
+        moon.material.diffuseTexture = new BABYLON.Texture("assets/images/moon.jpg", scene);
+        moon.parent = planet;
+       moon.position = new BABYLON.Vector3(20, 7, 0.0);
+        camera.target = planet;
+        return scene;
+
+    };
+    var scene = createScene();
+
+    engine.runRenderLoop(function() {
+        scene.render();
+    });
+
+
+
+
+</script>
+
+</body>
+</html>
