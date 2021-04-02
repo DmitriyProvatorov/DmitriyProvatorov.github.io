@@ -91,7 +91,7 @@
                     }
 				    if (event.stopFrame === this.frame){
                         console.log("remove: ", event )
-					  //  this.remove(event)
+					    this.remove(event)
 				    }
 
 				    if(this.doEvents.length){
@@ -125,14 +125,15 @@
             }, 1000/60)
         },
 	    createSprite(params){
-    		console.log("create sprite")
+    		console.log("create sprite", params)
+
 		    const spriteManager = new BABYLON.SpriteManager(params.sprite.name, params.sprite.path, params.sprite.count,
                 params.sprite.size);
 
 		    const sprite = new BABYLON.Sprite("sprite", spriteManager);
-		    sprite.playAnimation(0, 64, false, 100);
-            sprite.size = params.size;
-            sprite.position = params.position;
+		    sprite.playAnimation(params.sprite.start, params.sprite.stop, false, params.sprite.pause);
+            sprite.size = params.sprite.spriteSize;
+            sprite.position = params.sprite.position;
             if(params.parent){
 
 	            sprite.position.addInPlace(params.parent.position)
@@ -183,8 +184,21 @@
         },
         change(){
 
+
+    	    /*
+    	    stopFrame
+    	    startFRame
+
+    	     */
     		console.log(this.frame)
 	        for(let event of this.doEvents){
+
+	            console.log(this.frame , event.startFrame ,  event.stopFrame)
+
+                if( this.frame < event.startFrame || this.frame > event.stopFrame){
+                    continue
+                }
+
 	        	switch(event.event){
 	        		case "resize":
 
@@ -306,12 +320,19 @@
 
        // Animation.push(1, planet, new BABYLON.Vector3(0, 0, -15), "assets/images/7.png", 10, 1, 100, "resize", 0.01, {x: -0.04, y:0.04});
 	    //Animation.push(1, planet, new BABYLON.Vector3(0, 0, -15), "assets/images/7.png", 10, 1, 100, "resize", 0.01, null , {x: -0.04, y:0.04})
-	    Animation.push(1, planet, new BABYLON.Vector3(0, 0, -15), null, 10, 1, 2000, null, 0.01, {
+	    Animation.push(1, planet, null, null, 10, 1, 500, null, 0.01, {
             name: "test",
             count: "8",
             size: "1000",
-            path: "assets/images/bungs.png"
+            path: "assets/images/bungs.png",
+            start: 0,
+            stop: 64,
+            spriteSize: 30,
+            pause: 100,
+            position : new BABYLON.Vector3(0, 0, -15)
         }, )
+
+        //Animation.push(1, planet, new BABYLON.Vector3(0, 0, -15), "assets/images/7.png", 500, 1, 2000, "resize", 0.01, {x: 0.04, y:0.04});
 
         Animation.init();
 
