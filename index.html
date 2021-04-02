@@ -19,6 +19,237 @@
 <canvas id = "renderCanvas"></canvas>
 <script type = "text/javascript">
 
+    const Animation = {
+
+    	meshes: [],
+    	frame: 0,
+    	listEvents: [], // поппадет в массив ниже если его там нет
+        doEvents:[],
+    	push: function(_id, parent, position, path, size, startFrame, stopFrame, event, speed, sprite,fixed){
+    		console.log("push")
+    		this.listEvents.push({id: this.listEvents.length+ 1,size,  parent, path, position,
+                startFrame, stopFrame, event, speed, plane: null, fixed, _id, sprite})
+		    this.maxFrame = stopFrame;
+
+        },
+        eventWithTarget(object){
+    		this.target = object;
+
+        },
+        init:function() {
+
+          this.interval =  setInterval(()=>{
+    			this.frame ++;
+
+    			let i =0;
+
+
+
+    			for(let event of this.listEvents){
+
+
+
+    				let _id;
+    				let plane;
+    				if(!event.plane && _id !== event._id){
+    					console.log("in")
+    					_id = event._id;
+    					if(!event.sprite) {
+    						console.log("plane")
+						    plane = this.createPlane(event)
+						    event.plane = plane;
+					    }
+    					else {
+    						if(!event.plane ) {
+    							console.log("create Sprite")
+
+
+							    plane = this.createSprite(event)
+
+                                console.log("plane:", plane)
+							    event.plane = plane;
+						    }
+
+                        }
+                    }
+
+    				if(i < this.listEvents.length -1){
+					    i++;
+                    }
+				    for(let j = i; j < this.listEvents.length; j ++){
+                        if(this.listEvents[j]._id === _id &&  !this.listEvents[j].plane){
+	                        this.listEvents[j].plane = plane;
+	                        console.log("повторное действие с уществующим объектом")
+                            console.log( this.listEvents)
+                        }
+
+				    }
+
+				    if (event.startFrame === this.frame){
+
+				    	this.doEvents.push(event)
+                    }
+				    if (event.stopFrame === this.frame){
+                        console.log("remove: ", event )
+					  //  this.remove(event)
+				    }
+
+				    if(this.doEvents.length){
+				    	this.change()
+                    }
+				    else{
+				    	if(this.maxFrame <= this.frame) {
+						    for (let mesh of this.meshes) {
+							    //mesh.dispose();
+						    }
+						    this.meshes = [];
+						    clearInterval(this.interval)
+					    }
+                    }
+
+				    // если совпали старт фрем и фрейм
+				    // иначе проверка на стоп фрейм
+                }
+
+    			/*
+
+    			if(this.target.startFrame === this.frame && this.target.stopFrame <= this.frame){
+
+    				//this.doTargetEvent()
+                }
+                */
+
+                // перебираем все находим первый создаем план если его нет и добавляем его во все с таким патчем
+                // перебираем в ду и если стоп фрейм совпадает
+                // перебираем в ду и делаем действие
+            }, 1000/60)
+        },
+	    createSprite(params){
+    		console.log("create sprite")
+		    const spriteManager = new BABYLON.SpriteManager(params.sprite.name, params.sprite.path, params.sprite.count,
+                params.sprite.size);
+
+		    const sprite = new BABYLON.Sprite("sprite", spriteManager);
+		    sprite.playAnimation(0, 40, false, 100);
+            sprite.size = params.size;
+            sprite.position = params.position;
+            if(params.parent){
+
+	            sprite.position.addInPlace(params.parent.position)
+            }
+		    return sprite;
+        },
+
+        createPlane(params){
+
+    		console.log(params)
+    		let _icon =  new BABYLON.MeshBuilder.CreatePlane(name + "_icon", {
+			    size: params.size,
+			    updatable: true
+		    }, scene);
+	        _icon.parent = params.parent;
+	        //_icon.position.z = -15;
+
+            _icon.position = params.position;
+
+	        _icon.billboardMode = true;
+	        _icon.applyFog = false;
+	        _icon.isBlocker = false;
+
+	        const material = new BABYLON.StandardMaterial("earthMat", scene);
+
+	        const texture = new BABYLON.Texture(params.path, scene);
+	        material.diffuseTexture = texture;
+	        material.opacityTexture = texture;
+	        material.disableLighting = false;
+	        material.specularColor = new BABYLON.Color3(0, 0, 0);
+
+	        _icon.material = material;
+
+	        this.meshes.push(_icon)
+	        return _icon;
+
+        },
+        remove(event){
+    		let index;
+           for ( let i=0; i <this.doEvents.length; i++){
+           	if(event.id === this.doEvents[i].id){
+           		index = i;
+           		break;
+            }
+
+           }
+           this.doEvents.splice(index, 1);
+        },
+        change(){
+
+    		console.log(this.frame)
+	        for(let event of this.doEvents){
+	        	switch(event.event){
+	        		case "resize":
+
+	        			console.log("resize")
+
+                        if(!event.sprite) {
+	                        event.plane.scaling.x += event.speed;
+	                        event.plane.scaling.y += event.speed;
+                        }
+                        else {
+                        	event.plane.size += event.speed;
+                        }
+
+				        if(event.fixed) {
+					        event.position.x += event.fixed.x;
+					        event.position.y += event.fixed.y;
+				        }
+	        			break;
+			        case "moveX":
+                        event.plane.position.x += event.speed;
+
+				        break;
+			        case "moveY":
+                        event.plane.position.y += event.speed;
+
+				        break;
+			        case "visibility":
+
+				        if(!event.sprite) {
+					        event.plane.visibility += event.speed;
+				        }
+				        else{
+					        event.plane.color.a += event.speed;
+                        }
+
+				        break;
+                    case "rotate":
+	                    if(event.sprite) {
+		                    even.plane.angle += event.speed;
+	                    }
+	                    else {
+
+	                    	let angle = plane.rotate.z -90;
+                            angle += event.speed;
+
+		                    even.plane.rotate(BABYLON.Axis.X, 1.5, BABYLON.Space.LOCAL)
+                        }
+
+                    	break;
+
+
+		        }
+	        }
+
+        },
+	    doTargetEvent(){
+		    switch(this.target.event){
+			    case "":
+				    event.plane.param += event.speed;
+				    break;
+		    }
+        }
+
+
+    }
 
     var config = {
         PLANET_RADIUS: 30, //радиус земли
@@ -53,7 +284,7 @@
             "assets/images/space.jpg",
             {
                 resolution: 32,
-                size: 1000
+                size: 200
             },
             scene
         );
@@ -70,6 +301,20 @@
         moon.parent = planet;
        moon.position = new BABYLON.Vector3(20, 7, 0.0);
         camera.target = planet;
+
+
+
+       // Animation.push(1, planet, new BABYLON.Vector3(0, 0, -15), "assets/images/7.png", 10, 1, 100, "resize", 0.01, {x: -0.04, y:0.04});
+	    //Animation.push(1, planet, new BABYLON.Vector3(0, 0, -15), "assets/images/7.png", 10, 1, 100, "resize", 0.01, null , {x: -0.04, y:0.04})
+	    Animation.push(1, planet, new BABYLON.Vector3(0, 0, -15), null, 10, 1, 2000, null, 0.01, {
+            name: "test",
+            count: "8",
+            size: "1000",
+            path: "assets/images/bungs.png"
+        }, )
+
+        Animation.init();
+
         return scene;
 
     };
