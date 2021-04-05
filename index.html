@@ -47,6 +47,10 @@
 
     			for(let event of this.listEvents){
 
+					if( this.frame < event.startFrame || this.frame > event.stopFrame){
+						continue
+					}
+
 
 
     				let _id;
@@ -68,6 +72,7 @@
 
                                 console.log("plane:", plane)
 							    event.plane = plane;
+
 						    }
 
                         }
@@ -79,6 +84,9 @@
 				    for(let j = i; j < this.listEvents.length; j ++){
                         if(this.listEvents[j]._id === _id &&  !this.listEvents[j].plane){
 	                        this.listEvents[j].plane = plane;
+	                        if(event.sprite){
+								this.listEvents[j].sprite = plane;
+                            }
 	                        console.log("повторное действие с уществующим объектом")
                             console.log( this.listEvents)
                         }
@@ -202,19 +210,20 @@
 	        	switch(event.event){
 	        		case "resize":
 
-	        			console.log("resize")
+	        			console.log("resize",  event.sprite)
 
                         if(!event.sprite) {
 	                        event.plane.scaling.x += event.speed;
 	                        event.plane.scaling.y += event.speed;
                         }
                         else {
+                        	console.log(event)
                         	event.plane.size += event.speed;
                         }
 
 				        if(event.fixed) {
-					        event.position.x += event.fixed.x;
-					        event.position.y += event.fixed.y;
+					        event.plane.position.x += event.fixed.x;
+					        event.plane.position.y += event.fixed.y;
 				        }
 	        			break;
 			        case "moveX":
@@ -327,10 +336,38 @@
             path: "assets/images/bungs.png",
             start: 0,
             stop: 64,
-            spriteSize: 150,
+            spriteSize: 15,
             pause: 100,
             position : new BABYLON.Vector3(0, 0, -15)
         }, )
+
+		//Animation.push(1, planet, new BABYLON.Vector3(0, 0, -15), "assets/images/7.png", 10, 1, 100, "resize", 0.01, null , {x: -0.04, y:0.04})
+		Animation.push(2, planet, null, null, 10, 50, 500, null, 0.01, {
+			name: "test",
+			count: "8",
+			size: "1000",
+			path: "assets/images/bungs.png",
+			start: 0,
+			stop: 64,
+			spriteSize: 15,
+			pause: 150,
+			position : new BABYLON.Vector3(3, 0, -15)
+		}, )
+		Animation.push(3, planet, null, null, 10, 100, 500, null, 0.01, {
+			name: "test",
+			count: "8",
+			size: "1000",
+			path: "assets/images/bungs.png",
+			start: 0,
+			stop: 64,
+			spriteSize: 15,
+			pause: 200,
+			position : new BABYLON.Vector3(-3, 2, -15)
+		}, )
+
+		//jrAnimation.push(1, planet, null, null, null,500,  2000, "visibility",  -0.04);
+
+	    //_id, parent, position, path, size, startFrame, stopFrame, event, speed, sprite,fixed
 
         //Animation.push(1, planet, new BABYLON.Vector3(0, 0, -15), "assets/images/7.png", 500, 1, 2000, "resize", 0.01, {x: 0.04, y:0.04});
 
